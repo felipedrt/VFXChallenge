@@ -1,0 +1,143 @@
+﻿@page "/forexPrices"
+@rendermode InteractiveServer
+@attribute [StreamRendering(true)]
+@using System.Net.Http;
+@using System.Text.Json
+@using VFXChallenge.Components.Pages.ForexPricesPage.Models
+@using VFXChallenge.Components.Pages.ForexPricesPage.Services
+@using VFXChallenge.Components.Pages.LoginPage.Services
+@using VFXChallenge.Interface
+@inject LoginService LoginService
+
+
+<PageTitle>ForexPrices</PageTitle>
+
+<div class="header">
+    <img src="logo-white.svg" />
+    <div class="d-flex flex-column mx-4">
+        <div>
+            <span class="fw-bold text-white">Client Id:</span>
+            <span class="text-white">@LoginService.LoginPageModel.ClientId</span>
+        </div>
+        <div>
+            <span class="fw-bold text-white">User Id:</span>
+            <span class="text-white">@LoginService.LoginPageModel.UserId</span>
+        </div>
+    </div>
+</div>
+
+<div class="p-4 bg-white m-2">
+    @if (isLoading)
+    {
+        <div class="d-flex justify-content-center align-items-center flex-column">
+            <img src="svg-spinner.svg" height="60" />
+            <span class="mt-2 span-loading">Please wait...</span>
+        </div>
+    }
+    else
+    {
+        <div class="d-flex mb-4">
+            <div class="d-block">
+                <div class="forex-daily">Forex Daily Prices</div>
+                <div class="last-refresh">Last refresh: @lastRefreshed.ToString("yyyy-MM-dd HH:mm")</div>
+            </div>
+            <div class="mx-2">
+                <InputSelect id="fromCurrencyId" class="form-select" @bind-Value="fromCurrency" @oninput=FromCurrencyValueChanged>
+                    <option selected value="GBP">GBP</option>
+                    <option value="EUR">EUR</option>
+                    <option value="USD">USD</option>
+                </InputSelect>
+            </div>
+            <div class="mx-2">
+                <InputSelect id="toCurrencyId" class="form-select" @bind-Value="toCurrency" @oninput=ToCurrencyValueChanged>
+                    <option value="GBP">GBP</option>
+                    <option selected value="EUR">EUR</option>
+                    <option value="USD">USD</option>
+                </InputSelect>
+            </div>
+            <div class="d-flex align-items-center">
+                <button class="vfx-btn-secondary" @onclick="GetData">Reload</button>
+            </div>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Open</th>
+                    <th>High</th>
+                    <th>Low</th>
+                    <th>Close</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (AlphaVantageResponse.HasError)
+                {
+                    <tr>
+                        <td colspan="5">
+                            <span class="text-danger fw-bold">@AlphaVantageResponse.MsgError</span>
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var result in AlphaVantageResponse.Data.TimeSeries)
+                    {
+                        <tr>
+                            <td>@result.Value.Open</td>
+                            <td>@result.Value.High</td>
+                            <td>@result.Value.Low</td>
+                            <td>@result.Value.Close</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    }
+</div>
+
+
+@code {
+    public IAPIResponse<AlphaVantageResponseModel> AlphaVantageResponse;
+    private ForexPriceService ForexPriceService = new ForexPriceService();
+    private bool isLoading;
+    public string fromCurrency = "GBP";
+    public string toCurrency = "EUR";
+    public DateTime lastRefreshed = DateTime.Now;
+
+    #region Page Lifecycle
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetData();
+    }
+
+    #endregion
+
+    #region Methods
+
+    public async Task GetData()
+    {
+        isLoading = true;
+        AlphaVantageResponse = await ForexPriceService.GetData(fromCurrency, toCurrency);
+        lastRefreshed = DateTime.Now;
+        isLoading = false;
+        StateHasChanged();
+    }
+
+    #endregion
+
+    #region Events
+
+    public async Task FromCurrencyValueChanged(ChangeEventArgs e)
+    {
+        fromCurrency = e.Value?.ToString() ?? "";
+        await GetData();
+    }
+
+    public async Task ToCurrencyValueChanged(ChangeEventArgs e)
+    {
+        toCurrency = e.Value?.ToString() ?? "";
+        await GetData();
+    }
+
+    #endregion
+}

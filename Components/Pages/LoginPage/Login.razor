@@ -1,0 +1,46 @@
+﻿@page "/"
+@using VFXChallenge.Components.Pages.LoginPage.Models
+@using VFXChallenge.Components.Pages.LoginPage.Services
+@rendermode InteractiveServer
+
+<PageTitle>Login</PageTitle>
+
+
+<div class="login-container">
+    <div>
+        <i class="fas fa-home"></i>
+    </div>
+    <div class="login-form">
+        <img class="vfx-logo" src="logo-color.svg" />
+        <EditForm class="w-100" Model="LoginFormModel" OnValidSubmit="Submit">
+            <DataAnnotationsValidator />
+            <InputText id="clientId" class="form-control" placeholder="Client Id" @bind-Value="LoginFormModel.ClientId"></InputText>
+            <ValidationMessage id="clientIdMsgError" class="text-start text-danger" For="() => LoginFormModel.ClientId" />
+
+            <InputText id="userId" class="form-control mt-2" placeholder="User Id" @bind-Value="LoginFormModel.UserId"></InputText>
+            <ValidationMessage id="userIdMsgError" class="text-start text-danger" For="() => LoginFormModel.UserId" />
+
+            <InputText id="password" class="form-control mt-2" type="password" placeholder="Password" @bind-Value="LoginFormModel.Password"></InputText>
+            <ValidationMessage id="passwordMsgError" class="text-start text-danger" For="() => LoginFormModel.Password" />
+
+            <div class="w-50 m-auto">
+                <input type="submit" class="vfx-btn-primary mt-4" value="Sign me in" />
+            </div>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    [Inject]
+    public NavigationManager? Navigation { get; set; }
+    [Inject]
+    public LoginService LoginService { get; set; }
+
+    public LoginPageModel LoginFormModel { get; set; } = new LoginPageModel();
+
+    public void Submit()
+    {
+        LoginService.LoginPageModel = LoginFormModel;
+        Navigation?.NavigateTo("forexPrices");
+    }
+}

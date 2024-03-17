@@ -1,0 +1,27 @@
+﻿.header {
+    height: 64px;
+    background-color: rgb(24, 60, 105);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header > img {
+    margin-left: 10px;
+    height: 80px;
+    width: 80px;
+}
+
+.span-loading {
+    font-size: 12px;
+    color: rgb(24, 60, 105);
+}
+
+.forex-daily {
+    color: rgb(24, 60, 105);
+    font-weight: bold;
+}
+
+.last-refresh {
+    font-size: 10px;
+}
